@@ -46,48 +46,50 @@ Fiz um sistema que escolhe se o piso é bom ou ruim na hora que você pisa.
 Usei math.random(1, 100) para definir as chances (70% de ser azul e ficar de boa).
 Coloquei uma checagem de distância (Magnitude) pro piso não resetar enquanto eu ainda estou em cima dele.
           
-          local parte = script.Parent
-          local ocupado = false
+         local parte = script.Parent
+	local ocupado = false
 
-          parte.Touched:Connect(function(hit)
-	          local char = hit.Parent
-          	local hum = char:FindFirstChild("Humanoid")
-          	local root = char:FindFirstChild("HumanoidRootPart")
+	parte.Touched:Connect(function(hit)
+	local char = hit.Parent
+	local hum = char:FindFirstChild("Humanoid")
+	local root = char:FindFirstChild("HumanoidRootPart")
 
-          	-- Só inicia se for um jogador vivo e o piso não estiver ocupado
-          	if hum and root and hum.Health > 0 and not ocupado then
-          		ocupado = true 
+	-- Só inicia se for um jogador vivo e o piso não estiver ocupado
+	if hum and root and hum.Health > 0 and not ocupado then
+		ocupado = true 
 
-          		-- 1. SORTEIO 50/50
-	          	local chance = math.random(1, 100)
-	          	if chance <= 70 then
-		          	parte.Color = Color3.fromRGB(100, 100, 255) -- AZUL
-		          	parte.Transparency = 0.2
-	          	else
-	          		parte.Color = Color3.fromRGB(255, 100, 100) -- VERMELHO
-		          	parte.Transparency = 0.2
-		          	hum.Health = hum.Health - 45
-	          	end
+		-- 1. SORTEIO (1/1 sempre dará azul para teste)
+		local chance = math.random(1, 1)
+		if chance <= 1 then
+			parte.Color = Color3.fromRGB(100, 100, 255) -- AZUL
+			parte.Transparency = 0.2
 
-          		-- 2. LOOP DE PERMANÊNCIA
-	          	-- Ele fica checando se você ainda está perto da peça
-	          	-- Enquanto a distância for curta, a cor não muda
-	          	task.spawn(function()
-		          	while ocupado do
-		          		task.wait(0.1)
-		          		local distancia = (root.Position - parte.Position).Magnitude
+			-- LÓGICA DE CURA: Soma 50 de vida, limitando ao máximo de 100
+			hum.Health = math.min(hum.Health + 50, 100)
+		else
+			parte.Color = Color3.fromRGB(255, 100, 100) -- VERMELHO
+			parte.Transparency = 0.2
+			hum.Health = hum.Health - 50
+		end
 
-		          		-- Se o jogador se afastar mais que o tamanho da peça (pulou fora)
-		            	-- Ou se o jogador morrer
-	          			if distancia > (parte.Size.Magnitude / 1.5) or hum.Health <= 0 then
-		          			parte.Color = Color3.fromRGB(100, 100, 100)
-		          			parte.Transparency = 0.2
-          					ocupado = false -- Libera para o próximo sorteio
-          				end
-          			end
-          		end)
-          	end
-          end)
+		-- 2. LOOP DE PERMANÊNCIA
+		task.spawn(function()
+			while ocupado do
+				task.wait(0.1)
+				-- Verifica se o objeto ainda existe antes de calcular distância
+				if not root or not root.Parent then break end
+
+				local distancia = (root.Position - parte.Position).Magnitude
+
+				if distancia > (parte.Size.Magnitude / 1.5) or hum.Health <= 0 then
+					parte.Color = Color3.fromRGB(100, 100, 100)
+					parte.Transparency = 0.2
+					ocupado = false 
+				end
+			end
+		end)
+	end
+	end)
 
   -- 07/01/2026 - Checkpoints 📍
 Fiz o piso virar um ponto de nascimento.
