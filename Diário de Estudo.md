@@ -5,6 +5,8 @@ Link para jogar [O Chão é Lava!](https://www.roblox.com/pt/games/9915170892618
   -- 04/01/2026 - O Começo ✍️
 Primeiros passos no Roblox Studio. Entendendo como colocar blocos e onde enfiar os scripts.
 
+	print ("Hello, World")
+
   -- 06/01/2026 - Fazendo a Lava 💀
 Aprendi a matar o jogador ou tirar vida.
 O tal do debouncing serve para o script não rodar mil vezes por segundo e bugar tudo.
@@ -121,54 +123,77 @@ O truque foi trocar a Part comum por um SpawnLocation e mudar a cor pra verde qu
 O maior desafio: fazer o jogador ganhar, voltar pro começo e o mapa "esquecer" os checkpoints.
 O script agora varre o mapa todo procurando os blocos chamados "Checkpoint" e pinta eles de cinza de novo.
 Coloquei um tempo de 5 segundos para o piso amarelo voltar ao normal depois da vitória.
+-edit: Agora ele não só reseta o mapa, como também conversa com o Placar de Líderes para dar o prêmio ao vencedor.
 
           local linhaDeChegada = script.Parent
 
-          linhaDeChegada.Touched:Connect(function(hit)
-	          local char = hit.Parent
-          	local player = game.Players:GetPlayerFromCharacter(char)
-          	local hum = char:FindFirstChild("Humanoid")
+	linhaDeChegada.Touched:Connect(function(hit)
+    local char = hit.Parent
+    local player = game.Players:GetPlayerFromCharacter(char)
+    local hum = char:FindFirstChild("Humanoid")
 
-          	-- Só roda se for um player vivo
-          	if player and hum and hum.Health > 0 then
+    -- Só roda se for um player vivo
+    if player and hum and hum.Health > 0 then
 
-	          	-- 1. BUSCAR O SPAWN INICIAL (O que estiver marcado como Neutral)
-	          	local spawnOriginal = nil
-	          	for _, obj in pairs(game.Workspace:GetDescendants()) do
-	          		if obj:IsA("SpawnLocation") and obj.Neutral == true then
-          				spawnOriginal = obj
-			          	break
-	          		end
-	          	end
+        -- 1. 🏆 DAR O PONTO NO PLACAR
+        local stats = player:FindFirstChild("leaderstats")
+        if stats then
+            local score = stats:FindFirstChild("Triunfos")
+            if score then
+                score.Value = score.Value + 1 -- Soma uma vitória
+            end
+        end
 
-	          	if spawnOriginal then
-	          		-- 2. RESETAR O NASCIMENTO E TELEPORTAR
-	          		player.RespawnLocation = spawnOriginal
-		          	char:MoveTo(spawnOriginal.Position + Vector3.new(0, 3, 0))
+        -- 2. 📍 VOLTAR PARA O INÍCIO
+        local spawnOriginal = nil
+        for _, obj in pairs(game.Workspace:GetDescendants()) do
+            if obj:IsA("SpawnLocation") and obj.Neutral == true then
+                spawnOriginal = obj
+                break
+            end
+        end
 
-	          		-- 3. RESETAR TODOS OS CHECKPOINTS VERDES DO MAPA
-	          		-- Eles voltam a ser cinzas para poderem ser pegos de novo
-	          		for _, checkpoint in pairs(game.Workspace:GetDescendants()) do
-	          			if checkpoint.Name == "Checkpoint" and checkpoint:IsA("SpawnLocation") then
-			          		checkpoint.Color = Color3.fromRGB(100, 100, 100) -- Cinza
-			          		checkpoint.Material = Enum.Material.Plastic
-			          		checkpoint.Transparency = 0.2
-	          			end
-	          		end
+        if spawnOriginal then
+            player.RespawnLocation = spawnOriginal
+            char:MoveTo(spawnOriginal.Position + Vector3.new(0, 3, 0))
 
-	          		-- 4. EFEITO VISUAL NA CHEGADA (Fica Amarela)
-		          	linhaDeChegada.Color = Color3.fromRGB(255, 255, 100) -- Amarelo
-		          	linhaDeChegada.Material = Enum.Material.Neon
-	          		linhaDeChegada.Transparency = 0.5 -- Fica bem visível
+            -- 3. 🧹 RESETAR CORES DOS CHECKPOINTS
+            for _, checkpoint in pairs(game.Workspace:GetDescendants()) do
+                if checkpoint.Name == "Checkpoint" and checkpoint:IsA("SpawnLocation") then
+                    checkpoint.Color = Color3.fromRGB(100, 100, 100) -- Cinza
+                    checkpoint.Material = Enum.Material.Plastic
+                    checkpoint.Transparency = 0.2
+                end
+            end
 
-	          		-- 5. ESPERAR 5 SEGUNDOS E VOLTAR AO NORMAL
-	          		task.wait(5)
+            -- 4. ✨ EFEITO VISUAL DE VITÓRIA (5 Segundos)
+            linhaDeChegada.Color = Color3.fromRGB(255, 255, 100)
+            linhaDeChegada.Material = Enum.Material.Neon
+            task.wait(5)
+            linhaDeChegada.Color = Color3.fromRGB(100, 100, 100) -- Volta ao normal
+            linhaDeChegada.Material = Enum.Material.Plastic
+        end
+    end
+	end)
 
-          			linhaDeChegada.Color = Color3.fromRGB(100, 100, 100) -- Volta pra Cinza
-	          		linhaDeChegada.Material = Enum.Material.Plastic
-	          		linhaDeChegada.Transparency = 0.2
+		   
+-- 08/01/2026 - 📊 5. Placar de Líderes (Leaderboard)
+Este script fica no ServerScriptService. Ele cria o placar que todos os jogadores veem no canto da tela e prepara a variável "Triunfos" para salvar as vitórias.
 
-	          		print("Mapa resetado e linha de chegada pronta para o próximo!")
-          		end
-          	end
-          end)
+	local Players = game:GetService("Players")
+
+	local function onPlayerAdded(player)
+	-- Cria a pasta que o Roblox reconhece como Placar
+	local leaderstats = Instance.new("Folder")
+	leaderstats.Name = "leaderstats"
+	leaderstats.Parent = player
+
+	-- Cria o valor de Triunfos começando em 0
+	local score = Instance.new("IntValue")
+	score.Name = "Triunfos"
+	score.Value = 0
+	score.Parent = leaderstats
+	end
+
+	-- Avisa o jogo para rodar a função toda vez que alguém entrar
+	Players.PlayerAdded:Connect(onPlayerAdded)
