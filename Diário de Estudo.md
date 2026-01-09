@@ -48,7 +48,7 @@ Fiz um sistema que escolhe se o piso é bom ou ruim na hora que você pisa.
 Usei math.random(1, 100) para definir as chances (70% de ser azul e ficar de boa).
 Coloquei uma checagem de distância (Magnitude) pro piso não resetar enquanto eu ainda estou em cima dele.
           
-         local parte = script.Parent
+	local parte = script.Parent
 	local ocupado = false
 
 	parte.Touched:Connect(function(hit)
@@ -97,27 +97,27 @@ Coloquei uma checagem de distância (Magnitude) pro piso não resetar enquanto e
 Fiz o piso virar um ponto de nascimento.
 O truque foi trocar a Part comum por um SpawnLocation e mudar a cor pra verde quando o jogador encosta, pra avisar que salvou.
 
-          local spawnPoint = script.Parent
+	local spawnPoint = script.Parent
 
-          spawnPoint.Touched:Connect(function(hit)
-          	local char = hit.Parent
-          	local player = game.Players:GetPlayerFromCharacter(char)
+	spawnPoint.Touched:Connect(function(hit)
+	local char = hit.Parent
+	local player = game.Players:GetPlayerFromCharacter(char)
 
-          	-- A MUDANÇA ESTÁ AQUI: 
-          	-- Só roda se for um player e se a cor NÃO for o verde de ativado
-          	if player and spawnPoint.Color ~= Color3.fromRGB(100, 255, 100) then
+	-- A MUDANÇA ESTÁ AQUI: 
+	-- Só roda se for um player e se a cor NÃO for o verde de ativado
+	if player and spawnPoint.Color ~= Color3.fromRGB(100, 255, 100) then
 
-	          	-- 1. Mudança Visual
-	          	spawnPoint.Color = Color3.fromRGB(100, 255, 100)
-	          	spawnPoint.Material = Enum.Material.Neon
-	          	spawnPoint.Transparency = 0.5
+		-- 1. Mudança Visual
+		spawnPoint.Color = Color3.fromRGB(100, 255, 100)
+		spawnPoint.Material = Enum.Material.Neon
+		spawnPoint.Transparency = 0.5
 
-          		-- 2. Define o local de nascimento
-	          	player.RespawnLocation = spawnPoint
+		-- 2. Define o local de nascimento
+		player.RespawnLocation = spawnPoint
 
-	          	print("Checkpoint salvo: " .. spawnPoint.Name)
-          	end
-          end)
+		print("Checkpoint salvo: " .. spawnPoint.Name)
+	end
+	end)
 
   -- 08/01/2026 - Linha de Chegada 🏁
 O maior desafio: fazer o jogador ganhar, voltar pro começo e o mapa "esquecer" os checkpoints.
@@ -125,75 +125,128 @@ O script agora varre o mapa todo procurando os blocos chamados "Checkpoint" e pi
 Coloquei um tempo de 5 segundos para o piso amarelo voltar ao normal depois da vitória.
 -edit: Agora ele não só reseta o mapa, como também conversa com o Placar de Líderes para dar o prêmio ao vencedor.
 
-          local linhaDeChegada = script.Parent
+local linhaDeChegada = script.Parent
 
-	linhaDeChegada.Touched:Connect(function(hit)
-    local char = hit.Parent
-    local player = game.Players:GetPlayerFromCharacter(char)
-    local hum = char:FindFirstChild("Humanoid")
+linhaDeChegada.Touched:Connect(function(hit)
+	local char = hit.Parent
+	local player = game.Players:GetPlayerFromCharacter(char)
+	local hum = char:FindFirstChild("Humanoid")
 
-    -- Só roda se for um player vivo
-    if player and hum and hum.Health > 0 then
+	-- Só roda se for um player vivo
+	if player and hum and hum.Health > 0 then
 
-        -- 1. 🏆 DAR O PONTO NO PLACAR
-        local stats = player:FindFirstChild("leaderstats")
-        if stats then
-            local score = stats:FindFirstChild("Triunfos")
-            if score then
-                score.Value = score.Value + 1 -- Soma uma vitória
-            end
-        end
+		-- 1. 🏆 DAR O PONTO NO PLACAR
+		local stats = player:FindFirstChild("leaderstats")
+		if stats then
+			local score = stats:FindFirstChild("Triunfos")
+			if score then
+				score.Value = score.Value + 1 -- Soma uma vitória
+			end
+		end
 
-        -- 2. 📍 VOLTAR PARA O INÍCIO
-        local spawnOriginal = nil
-        for _, obj in pairs(game.Workspace:GetDescendants()) do
-            if obj:IsA("SpawnLocation") and obj.Neutral == true then
-                spawnOriginal = obj
-                break
-            end
-        end
+		-- 2. 📍 VOLTAR PARA O INÍCIO
+		local spawnOriginal = nil
+		for _, obj in pairs(game.Workspace:GetDescendants()) do
+			if obj:IsA("SpawnLocation") and obj.Neutral == true then
+				spawnOriginal = obj
+				break
+			end
+		end
 
-        if spawnOriginal then
-            player.RespawnLocation = spawnOriginal
-            char:MoveTo(spawnOriginal.Position + Vector3.new(0, 3, 0))
+		if spawnOriginal then
+			player.RespawnLocation = spawnOriginal
+			char:MoveTo(spawnOriginal.Position + Vector3.new(0, 3, 0))
 
-            -- 3. 🧹 RESETAR CORES DOS CHECKPOINTS
-            for _, checkpoint in pairs(game.Workspace:GetDescendants()) do
-                if checkpoint.Name == "Checkpoint" and checkpoint:IsA("SpawnLocation") then
-                    checkpoint.Color = Color3.fromRGB(100, 100, 100) -- Cinza
-                    checkpoint.Material = Enum.Material.Plastic
-                    checkpoint.Transparency = 0.2
-                end
-            end
+			-- 3. 🧹 RESETAR CORES DOS CHECKPOINTS
+			for _, checkpoint in pairs(game.Workspace:GetDescendants()) do
+				if checkpoint.Name == "Checkpoint" and checkpoint:IsA("SpawnLocation") then
+					checkpoint.Color = Color3.fromRGB(100, 100, 100) -- Cinza
+					checkpoint.Material = Enum.Material.Plastic
+					checkpoint.Transparency = 0.2
+				end
+			end
 
-            -- 4. ✨ EFEITO VISUAL DE VITÓRIA (5 Segundos)
-            linhaDeChegada.Color = Color3.fromRGB(255, 255, 100)
-            linhaDeChegada.Material = Enum.Material.Neon
-            task.wait(5)
-            linhaDeChegada.Color = Color3.fromRGB(100, 100, 100) -- Volta ao normal
-            linhaDeChegada.Material = Enum.Material.Plastic
-        end
-    end
+			-- 4. ✨ EFEITO VISUAL DE VITÓRIA (5 Segundos)
+			linhaDeChegada.Color = Color3.fromRGB(255, 255, 100)
+			linhaDeChegada.Material = Enum.Material.Neon
+			task.wait(5)
+			linhaDeChegada.Color = Color3.fromRGB(100, 100, 100) -- Volta ao normal
+			linhaDeChegada.Material = Enum.Material.Plastic
+		end
+	end
 	end)
-
 		   
 -- 08/01/2026 - 📊 5. Placar de Líderes (Leaderboard)
 Este script fica no ServerScriptService. Ele cria o placar que todos os jogadores veem no canto da tela e prepara a variável "Triunfos" para salvar as vitórias.
 
 	local Players = game:GetService("Players")
+	local DataStoreService = game:GetService("DataStoreService")
+	local database = DataStoreService:GetDataStore("DadosJogador_V1") -- Mudei o nome para resetar e evitar conflito com dados antigos
 
 	local function onPlayerAdded(player)
-	-- Cria a pasta que o Roblox reconhece como Placar
+	-- Criação dos valores (Lógica de organização)
 	local leaderstats = Instance.new("Folder")
 	leaderstats.Name = "leaderstats"
+
+	local score = Instance.new("IntValue")
+	score.Name = "Conquistas" -- Nome que aparece no Placar
+	score.Parent = leaderstats
+
+	local lastCP = Instance.new("Vector3Value")
+	lastCP.Name = "LastCP"
+	lastCP.Parent = player
+
 	leaderstats.Parent = player
 
-	-- Cria o valor de Triunfos começando em 0
-	local score = Instance.new("IntValue")
-	score.Name = "Triunfos"
-	score.Value = 0
-	score.Parent = leaderstats
+	-- Carregamento
+	local success, savedData = pcall(function()
+		return database:GetAsync(player.UserId)
+	end)
+
+	if success and savedData then
+		-- Usamos os nomes exatos da tabela que salvamos lá embaixo
+		score.Value = savedData.Conquistas or 0
+		if savedData.Posicaoentao then
+			lastCP.Value = Vector3.new(savedData.Posicaoentao.X, savedData.Posicaoentao.Y, savedData.Posicaoentao.Z)
+		end
 	end
 
-	-- Avisa o jogo para rodar a função toda vez que alguém entrar
+	-- Teleporte
+	player.CharacterAdded:Connect(function(char)
+		-- Espera o personagem estar pronto no mundo
+		local root = char:WaitForChild("HumanoidRootPart", 5)
+		if root and lastCP.Value ~= Vector3.new(0,0,0) then
+			task.wait(0.1)
+			char:MoveTo(lastCP.Value + Vector3.new(0, 3, 0))
+		end
+	end)
+	end
+
+	local function onPlayerRemoving(player)
+	local leaderstats = player:FindFirstChild("leaderstats")
+	local lastCP = player:FindFirstChild("LastCP")
+
+	if leaderstats and lastCP then
+		local dataToSave = {
+			Conquistas = leaderstats.Conquistas.Value, -- Nome deve ser igual ao do carregamento
+			Posicaoentao = {
+				X = lastCP.Value.X,
+				Y = lastCP.Value.Y,
+				Z = lastCP.Value.Z
+			}
+		}
+		pcall(function()
+			database:SetAsync(player.UserId, dataToSave)
+		end)
+	end
+	end
+
 	Players.PlayerAdded:Connect(onPlayerAdded)
+	Players.PlayerRemoving:Connect(onPlayerRemoving)
+
+	-- Garante o salvamento se o servidor fechar de repente
+	game:BindToClose(function()
+	for _, p in pairs(Players:GetPlayers()) do
+		onPlayerRemoving(p)
+	end
+	end)
